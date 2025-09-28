@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>The BuZZ — College Events</title>
+  <!-- QR lib (qrious) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --accent:#8b5cf6; /* violet */
+      --accent2:#06b6d4; /* cyan */
+      --muted:#94a3b8;
+      --glass: rgba(255,255,255,0.04);
+      --glass-strong: rgba(255,255,255,0.06);
+      --radius:16px;
+    }
+    *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
+    html,body{height:100%;margin:0;background:
+      radial-gradient(1200px 600px at -10% 10%, rgba(139,92,246,0.12), transparent 8%),
+      radial-gradient(800px 400px at 110% 90%, rgba(6,182,212,0.08), transparent 6%),
+      var(--bg); color:#e6eef8; -webkit-font-smoothing:antialiased;}
+    header{display:flex;align-items:center;gap:16px;padding:18px 24px;border-bottom:1px solid rgba(255,255,255,0.03);position:sticky;top:0;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);}
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo .mark{width:44px;height:44px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:grid;place-items:center;font-weight:800;color:white;font-size:20px;box-shadow: 0 8px 30px rgba(139,92,246,0.12);transform:rotate(-15deg)}
+    .logo h1{font-size:18px;margin:0}
+    .wrap{max-width:1100px;margin:28px auto;padding:0 20px}
+    .grid{display:grid;grid-template-columns: 320px 1fr; gap:20px}
+    /* Auth card */
+    .card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:0 6px 30px rgba(2,6,23,0.6);border:1px solid rgba(255,255,255,0.02)}
+    .auth .role-toggle{display:flex;gap:8px;margin-bottom:12px}
+    .role-toggle button{flex:1;padding:10px;border-radius:10px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+    .role-toggle button.active{background:linear-gradient(90deg, rgba(139,92,246,0.14), rgba(6,182,212,0.06));color:#fff;box-shadow:0 6px 18px rgba(2,6,23,0.4)}
+    .input{display:block;margin-bottom:12px}
+    input[type="text"], input[type="email"], input[type="password"], textarea{
+      width:100%;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit;outline:none;
+      transition:box-shadow .18s,transform .12s;
+    }
+    input:focus, textarea:focus{box-shadow:0 6px 26px rgba(139,92,246,0.12);transform:translateY(-2px)}
+    button.cta{padding:12px 16px;border-radius:12px;border:0;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#012;cursor:pointer;font-weight:700;letter-spacing:0.3px;box-shadow:0 6px 30px rgba(139,92,246,0.12)}
+    /* Events grid */
+    .events-grid{display:grid;grid-template-columns: repeat(auto-fit,minmax(220px,1fr));gap:16px}
+    .event-card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:14px;padding:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.03);transition:transform .25s, box-shadow .25s}
+    .event-card:hover{transform:translateY(-10px) scale(1.02);box-shadow:0 18px 60px rgba(6,182,212,0.06)}
+    .poster{height:130px;border-radius:10px;background-size:cover;background-position:center;margin-bottom:12px;position:relative}
+    .tag{position:absolute;left:10px;bottom:10px;background:linear-gradient(90deg, rgba(0,0,0,0.45), rgba(0,0,0,0.2));padding:6px 10px;border-radius:999px;font-size:12px}
+    .meta{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+    .title{font-weight:700}
+    .muted{color:var(--muted);font-size:13px}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    /* Dashboard top */
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+    .banner{background:linear-gradient(90deg, rgba(139,92,246,0.12), rgba(6,182,212,0.06));border-radius:12px;padding:14px;display:flex;gap:12px;align-items:center}
+    .banner img{width:72px;height:72px;border-radius:8px;object-fit:cover;flex-shrink:0}
+    .small{font-size:13px}
+    /* lists */
+    .panel{padding:12px;border-radius:12px;background:var(--glass);border:1px solid rgba(255,255,255,0.02)}
+    .ann-list{display:flex;flex-direction:column;gap:8px}
+    .ann{padding:10px;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border:1px solid rgba(255,255,255,0.02)}
+    /* responsive / layout */
+    @media (max-width:880px){
+      .grid{grid-template-columns:1fr;gap:14px}
+      header{padding:12px}
+    }
+    footer{opacity:0.6;padding:26px 0;text-align:center;color:var(--muted);font-size:13px}
+    /* micro interactions */
+    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:10px;border-radius:10px;cursor:pointer}
+    .small-muted{font-size:13px;color:var(--muted)}
+    .flex{display:flex;align-items:center;gap:10px}
+    .chip{padding:6px 8px;border-radius:999px;background:rgba(255,255,255,0.03);font-size:13px}
+    /* modal */
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(2,6,23,0.6), rgba(2,6,23,0.85));z-index:60;padding:20px}
+    .modal.show{display:flex}
+    .modal-card{background:var(--card);padding:18px;border-radius:14px;max-width:420px;width:100%;text-align:center}
+    .close-x{position:absolute;right:18px;top:18px;background:transparent;border:0;color:var(--muted);cursor:pointer}
+    /* nice hover for posters */
+    .poster:after{content:"";position:absolute;inset:0;border-radius:10px;box-shadow:inset 0 0 36px rgba(2,6,23,0.6);transition:opacity .25s;opacity:0}
+    .event-card:hover .poster:after{opacity:0.06}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <div class="mark">Bz</div>
+      <div>
+        <h1>The BuZZ</h1>
+        <div class="small-muted">College events, festivals & more</div>
+      </div>
+    </div>
+    <div style="margin-left:auto" id="nav-actions"></div>
+  </header>
+
+  <main class="wrap">
+    <div class="grid">
+      <!-- LEFT: Auth / Create event / Announcements -->
+      <aside>
+        <div id="auth-area" class="card auth">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <strong id="auth-title">Welcome — Sign In / Sign Up</strong>
+            <div class="small-muted">Prototype • localStorage</div>
+          </div>
+
+          <div class="role-toggle" role="tablist">
+            <button id="role-student" class="active">Student</button>
+            <button id="role-staff">Staff</button>
+          </div>
+
+          <div id="auth-forms">
+            <div id="signin-form">
+              <div class="input"><input id="login-email" type="email" placeholder="Email" /></div>
+              <div class="input"><input id="login-pass" type="password" placeholder="Password" /></div>
+              <div style="display:flex;gap:8px">
+                <button class="cta" id="btn-login">Login</button>
+                <button class="btn-ghost" id="show-signup">Create account</button>
+              </div>
+              <div class="small-muted" style="margin-top:10px">Quick seeds: staff@college.edu / staff123 • student@college.edu / stud123</div>
+            </div>
+
+            <div id="signup-form" style="display:none">
+              <div class="input"><input id="su-name" type="text" placeholder="Full name" /></div>
+              <div class="input"><input id="su-email" type="email" placeholder="Email" /></div>
+              <div class="input"><input id="su-pass" type="password" placeholder="Password" /></div>
+              <div style="display:flex;gap:8px;margin-bottom:12px">
+                <button class="cta" id="btn-signup">Sign Up</button>
+                <button class="btn-ghost" id="show-signin">Back</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Staff only: create event -->
+        <div id="create-panel" class="card panel" style="margin-top:16px;display:none">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><strong>Create Event</strong><span class="chip">Staff</span></div>
+          <div class="input"><input id="ev-title" placeholder="Event title" /></div>
+          <div class="input"><input id="ev-venue" placeholder="Venue (e.g., Hall A)" /></div>
+          <div class="input"><input id="ev-date" type="date" /></div>
+          <div class="input"><input id="ev-time" type="time" /></div>
+          <div class="input"><input id="ev-img" placeholder="Poster image URL (optional)" /></div>
+          <div class="input"><textarea id="ev-desc" rows="3" placeholder="Short description"></textarea></div>
+          <div style="display:flex;gap:8px"><button id="btn-create-ev" class="cta">Create</button><button id="btn-clear-ev" class="btn-ghost">Clear</button></div>
+        </div>
+
+        <!-- Announcements -->
+        <div class="card panel" style="margin-top:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <strong>Announcements</strong><span class="small-muted">Updates</span>
+          </div>
+          <div id="ann-post" style="display:none">
+            <div class="input"><input id="ann-title" placeholder="Title" /></div>
+            <div class="input"><textarea id="ann-body" rows="3" placeholder="Write announcement..."></textarea></div>
+            <div style="display:flex;gap:8px"><button id="btn-post-ann" class="cta">Post</button><button id="btn-cancel-ann" class="btn-ghost">Cancel</button></div>
+            <div class="small-muted" style="margin-top:8px">Notes: staff can post announcements here.</div>
+          </div>
+          <div id="ann-list" class="ann-list" style="margin-top:10px"></div>
+        </div>
+
+        <div style="height:18px"></div>
+      </aside>
+
+      <!-- RIGHT: Main content (events + dashboard) -->
+      <section>
+        <div id="main-content">
+          <!-- Landing / events -->
+          <div class="card topbar" id="hero">
+            <div style="display:flex;gap:14px;align-items:center">
+              <div style="width:88px;height:88px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-weight:800;font-size:26px;color:#012">BUZZ</div>
+              <div>
+                <div style="font-weight:800;font-size:18px">Welcome to The BuZZ</div>
+                <div class="small-muted">Find & register for campus events — your ticket is a QR code.</div>
+              </div>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:10px;align-items:center">
+              <div class="small-muted">Sort:</div>
+              <select id="sort-select" style="padding:8px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,0.03)">
+                <option value="new">Newest</option>
+                <option value="date">By Date</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <strong>Upcoming Events</strong>
+              <div class="small-muted">Tap a poster to view & register</div>
+            </div>
+            <div id="events" class="events-grid"></div>
+          </div>
+
+          <div style="height:16px"></div>
+
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <div class="card panel" style="flex:1;min-width:260px">
+              <strong>Your Registrations</strong>
+              <div id="my-regs" style="margin-top:10px" class="small-muted">Login to view registered events.</div>
+            </div>
+
+            <div class="card panel" style="width:320px">
+              <strong>Discussion Board</strong>
+              <div class="small-muted" style="margin-top:8px">Students can comment; staff moderate.</div>
+              <div style="margin-top:12px">
+                <div id="discussion-list" style="display:flex;flex-direction:column;gap:8px"></div>
+                <div style="margin-top:10px">
+                  <textarea id="discussion-input" rows="2" placeholder="Write a comment..." style="width:100%;border-radius:8px;padding:8px;background:transparent;border:1px solid rgba(255,255,255,0.03)"></textarea>
+                  <div style="display:flex;justify-content:flex-end;margin-top:8px"><button id="btn-post-disc" class="cta">Post</button></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </div>
+
+    <footer style="max-width:1100px;margin:18px auto;color:var(--muted)">
+      Built for rapid prototyping • The BuZZ — College Events • Demo
+    </footer>
+  </main>
+
+  <!-- QR Modal -->
+  <div id="modal" class="modal" aria-hidden="true">
+    <div class="modal-card">
+      <button class="close-x" id="modal-close">✕</button>
+      <h3 id="modal-title">Your QR Ticket</h3>
+      <div id="qr-wrap" style="margin:12px 0">
+        <canvas id="qr-canvas"></canvas>
+      </div>
+      <div class="small-muted" id="qr-info">Scan at entry</div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:12px">
+        <button id="download-qr" class="cta">Download QR</button>
+        <button id="modal-ok" class="btn-ghost">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**************************************************************
+     * The BuZZ — frontend prototype
+     * - localStorage keys: buzz_users, buzz_events, buzz_regs, buzz_ann, buzz_disc
+     **************************************************************/
+    const STORAGE = {
+      users: 'buzz_users',
+      events: 'buzz_events',
+      regs: 'buzz_regs',
+      ann: 'buzz_ann',
+      disc: 'buzz_disc'
+    };
+
+    // helpers
+    const $ = (s) => document.querySelector(s);
+    const $$ = (s) => Array.from(document.querySelectorAll(s));
+    const uid = () => 'id_' + Math.random().toString(36).slice(2,9);
+
+    // seed users (only if none)
+    function seed() {
+      if(!localStorage.getItem(STORAGE.users)){
+        const users = [
+          {id: uid(), name: 'Staff Admin', email: 'staff@college.edu', pass:'staff123', role:'staff'},
+          {id: uid(), name: 'Student Demo', email: 'student@college.edu', pass:'stud123', role:'student'}
+        ];
+        localStorage.setItem(STORAGE.users, JSON.stringify(users));
+      }
+      if(!localStorage.getItem(STORAGE.events)){
+        const events = [
+          {id: uid(), title:'Inter-College Music Night', venue:'Auditorium', date: futureDate(7), time:'19:00', img:'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=60', desc:'Groove with the best bands!', created: Date.now()},
+          {id: uid(), title:'CodeFest Hackathon', venue:'Lab 5', date: futureDate(14), time:'09:00', img:'https://images.unsplash.com/photo-1526378728191-5a1d5d9d9b6b?auto=format&fit=crop&w=800&q=60', desc:'24hr coding spree.' , created: Date.now()},
+          {id: uid(), title:'Art & Photography Expo', venue:'Gallery', date: futureDate(3), time:'11:00', img:'https://images.unsplash.com/photo-1511765224389-37f0e77cf0eb?auto=format&fit=crop&w=800&q=60', desc:'Showcase your art!', created: Date.now()}
+        ];
+        localStorage.setItem(STORAGE.events, JSON.stringify(events));
+      }
+      if(!localStorage.getItem(STORAGE.ann)){
+        const ann = [{id:uid(), title:'Welcome Week', body:'Festival week starting next Monday. Get your passes!', created: Date.now()}];
+        localStorage.setItem(STORAGE.ann, JSON.stringify(ann));
+      }
+      if(!localStorage.getItem(STORAGE.regs)) localStorage.setItem(STORAGE.regs, JSON.stringify([]));
+      if(!localStorage.getItem(STORAGE.disc)) localStorage.setItem(STORAGE.disc, JSON.stringify([]));
+    }
+    function futureDate(days){
+      const d = new Date(); d.setDate(d.getDate()+days);
+      return d.toISOString().slice(0,10);
+    }
+
+    seed();
+
+    // state
+    let currentUser = null;
+
+    // UI elements
+    const roleStudentBtn = $('#role-student');
+    const roleStaffBtn = $('#role-staff');
+    const authTitle = $('#auth-title');
+    const showSignup = $('#show-signup');
+    const showSignin = $('#show-signin');
+    const signinForm = $('#signin-form');
+    const signupForm = $('#signup-form');
+    const createPanel = $('#create-panel');
+    const annPost = $('#ann-post');
+    const annListEl = $('#ann-list');
+    const eventsEl = $('#events');
+    const navActions = $('#nav-actions');
+    const myRegs = $('#my-regs');
+    const discList = $('#discussion-list');
+
+    // toggle role (affects default signup role)
+    let selectedRole = 'student';
+    function setRole(role){
+      selectedRole = role;
+      if(role==='student'){
+        roleStudentBtn.classList.add('active');
+        roleStaffBtn.classList.remove('active');
+      } else {
+        roleStaffBtn.classList.add('active');
+        roleStudentBtn.classList.remove('active');
+      }
+    }
+    roleStudentBtn.onclick = ()=> setRole('student');
+    roleStaffBtn.onclick = ()=> setRole('staff');
+
+    // auth actions
+    $('#show-signup').onclick = ()=> { signinForm.style.display='none'; signupForm.style.display='block'; $('#su-name').focus(); }
+    $('#show-signin').onclick = ()=> { signupForm.style.display='none'; signinForm.style.display='block'; }
+    $('#btn-signup').onclick = () => {
+      const name = $('#su-name').value.trim();
+      const email = $('#su-email').value.trim().toLowerCase();
+      const pass = $('#su-pass').value;
+      if(!name||!email||!pass) return alert('Complete the fields');
+      const users = JSON.parse(localStorage.getItem(STORAGE.users)||'[]');
+      if(users.find(u=>u.email===email)) return alert('Email already used');
+      const newUser = {id: uid(), name, email, pass, role: selectedRole};
+      users.push(newUser);
+      localStorage.setItem(STORAGE.users, JSON.stringify(users));
+      alert('Account created. Please login.');
+      signupForm.style.display='none'; signinForm.style.display='block';
+      $('#login-email').value = email;
+    };
+
+    $('#btn-login').onclick = () => {
+      const email = $('#login-email').value.trim().toLowerCase();
+      const pass = $('#login-pass').value;
+      const users = JSON.parse(localStorage.getItem(STORAGE.users)||'[]');
+      const found = users.find(u=>u.email===email && u.pass===pass);
+      if(!found) return alert('Invalid credentials (seed: staff@college.edu / staff123)');
+      currentUser = found;
+      onLogin();
+    };
+
+    function onLogin(){
+      // show role specific panels
+      authTitle.textContent = `Hi, ${currentUser.name}`;
+      signinForm.style.display='none';
+      signupForm.style.display='none';
+      $('#auth-area').innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px;justify-content:space-between">
+            <div>
+              <div style="font-weight:800">${currentUser.name}</div>
+              <div class="small-muted">${currentUser.email} • ${currentUser.role}</div>
+            </div>
+            <div>
+              <button id="btn-logout" class="btn-ghost">Logout</button>
+            </div>
+          </div>
+        </div>
+      `;
+      $('#btn-logout').onclick = logout;
+      // staff only panels
+      if(currentUser.role==='staff'){
+        createPanel.style.display='block';
+        annPost.style.display='block';
+      } else {
+        createPanel.style.display='none';
+        annPost.style.display='none';
+      }
+      renderNav();
+      renderProfiles();
+      renderEvents();
+      renderAnns();
+      renderRegs();
+      renderDisc();
+    }
+
+    function logout(){
+      currentUser = null;
+      location.reload(); // quick reset view
+    }
+
+    // nav
+    function renderNav(){
+      navActions.innerHTML = currentUser ? `<div style="display:flex;align-items:center;gap:10px"><div class="small-muted">Hello, ${currentUser.name.split(' ')[0]}</div></div>` : `<button id="to-login" class="btn-ghost">Login / Sign Up</button>`;
+      const btn = $('#to-login');
+      if(btn) btn.onclick = ()=> window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    // Events
+    function getEvents(){ return JSON.parse(localStorage.getItem(STORAGE.events)||'[]'); }
+    function saveEvents(arr){ localStorage.setItem(STORAGE.events, JSON.stringify(arr)); }
+    $('#btn-create-ev').onclick = () => {
+      const title = $('#ev-title').value.trim();
+      const venue = $('#ev-venue').value.trim();
+      const date = $('#ev-date').value;
+      const time = $('#ev-time').value;
+      const img = $('#ev-img').value.trim();
+      const desc = $('#ev-desc').value.trim();
+      if(!title||!venue||!date||!time) return alert('Fill title, venue, date, time');
+      const events = getEvents();
+      events.unshift({id: uid(), title, venue, date, time, img:img||randomPoster(), desc, created: Date.now()});
+      saveEvents(events);
+      $('#ev-title').value=''; $('#ev-venue').value=''; $('#ev-date').value=''; $('#ev-time').value=''; $('#ev-img').value=''; $('#ev-desc').value='';
+      renderEvents();
+      alert('Event created');
+    };
+    $('#btn-clear-ev').onclick = ()=> { $('#ev-title').value=''; $('#ev-venue').value=''; $('#ev-date').value=''; $('#ev-time').value=''; $('#ev-img').value=''; $('#ev-desc').value=''; }
+
+    function randomPoster(){
+      const imgs = [
+        'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=60',
+        'https://images.unsplash.com/photo-1526378728191-5a1d5d9d9b6b?auto=format&fit=crop&w=800&q=60',
+        'https://images.unsplash.com/photo-1511765224389-37f0e77cf0eb?auto=format&fit=crop&w=800&q=60'
+      ];
+      return imgs[Math.floor(Math.random()*imgs.length)];
+    }
+
+    function renderEvents(){
+      const events = getEvents().slice(); // copy
+      const sort = $('#sort-select') ? $('#sort-select').value : 'new';
+      if(sort==='date') events.sort((a,b)=> new Date(a.date) - new Date(b.date));
+      else events.sort((a,b)=> b.created - a.created);
+      eventsEl.innerHTML = '';
+      if(events.length===0) eventsEl.innerHTML = '<div class="small-muted">No events yet.</div>';
+      events.forEach(ev=>{
+        const card = document.createElement('div');
+        card.className = 'event-card';
+        card.innerHTML = `
+          <div class="poster" style="background-image:url('${ev.img}')">
+            <div class="tag">${ev.date} ${ev.time}</div>
+          </div>
+          <div class="meta"><div><div class="title">${ev.title}</div><div class="muted">${ev.venue}</div></div><div class="chip">${daysUntil(ev.date)} days</div></div>
+          <div class="small-muted" style="margin-bottom:8px">${short(ev.desc,80)}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="row"><button class="btn-ghost view-btn" data-id="${ev.id}">View</button></div>
+            <div class="row">
+              <button class="btn-ghost" data-id="${ev.id}" onclick="shareEvent('${ev.id}')">Share</button>
+              <button class="cta register-btn" data-id="${ev.id}">Register</button>
+            </div>
+          </div>
+        `;
+        eventsEl.appendChild(card);
+      });
+
+      // attach view / register
+      $$('.view-btn').forEach(b=> b.onclick = (e)=> {
+        const id = e.target.dataset.id; openDetails(id);
+      });
+      $$('.register-btn').forEach(b=> b.onclick = (e)=> {
+        const id = e.target.dataset.id;
+        if(!currentUser) return alert('Please login as student to register');
+        if(currentUser.role!=='student') return alert('Only students can register for events');
+        registerForEvent(id);
+      });
+    }
+    window.shareEvent = (id) => {
+      const ev = getEvents().find(x=>x.id===id);
+      if(!ev) return;
+      const txt = `${ev.title} @ ${ev.venue} on ${ev.date} ${ev.time}`;
+      navigator.clipboard?.writeText(txt).then(()=> alert('Event details copied to clipboard'));
+    };
+
+    function daysUntil(dateStr){
+      const now = new Date(); const d = new Date(dateStr);
+      const diff = Math.ceil((d - new Date(now.getFullYear(),now.getMonth(),now.getDate()))/86400000);
+      return diff>=0? diff : 'past';
+    }
+    function short(s,n){ return s.length>n ? s.slice(0,n-1)+'…' : s; }
+
+    // event details modal (simple)
+    function openDetails(id){
+      const ev = getEvents().find(x=>x.id===id);
+      if(!ev) return;
+      const html = `
+        <div style="display:flex;gap:12px;align-items:center">
+          <img src="${ev.img}" style="width:120px;height:80px;object-fit:cover;border-radius:8px">
+          <div style="flex:1">
+            <div style="font-weight:800">${ev.title}</div>
+            <div class="small-muted">${ev.venue} • ${ev.date} ${ev.time}</div>
+            <div style="margin-top:6px" class="small-muted">${ev.desc}</div>
+          </div>
+        </div>
+      `;
+      alert(ev.title + '\\n' + ev.venue + ' • ' + ev.date + ' ' + ev.time + '\\n\\n' + ev.desc);
+    }
+
+    // registrations
+    function getRegs(){ return JSON.parse(localStorage.getItem(STORAGE.regs)||'[]'); }
+    function saveRegs(a){ localStorage.setItem(STORAGE.regs, JSON.stringify(a)); }
+
+    function registerForEvent(evId){
+      const regs = getRegs();
+      // check duplicate
+      if(regs.find(r=> r.evId===evId && r.userEmail === currentUser.email)) return alert('You already registered');
+      const reg = {id: uid(), evId, userId: currentUser.id, userEmail: currentUser.email, userName: currentUser.name, created: Date.now()};
+      regs.push(reg);
+      saveRegs(regs);
+      renderRegs();
+      // generate QR
+      openQR(reg);
+    }
+
+    function renderRegs(){
+      if(!currentUser){
+        myRegs.innerHTML = 'Login to view registered events.';
+        return;
+      }
+      const regs = getRegs().filter(r=> r.userEmail === currentUser.email);
+      if(regs.length===0){ myRegs.innerHTML = '<div class="small-muted">No registrations yet.</div>'; return;}
+      myRegs.innerHTML = '';
+      regs.forEach(r=>{
+        const ev = getEvents().find(e=>e.id===r.evId);
+        const el = document.createElement('div');
+        el.style.display='flex'; el.style.justifyContent='space-between'; el.style.alignItems='center'; el.style.padding='8px 0'; el.style.borderBottom='1px dashed rgba(255,255,255,0.02)';
+        el.innerHTML = `<div><div style="font-weight:700">${ev?.title||'Event removed'}</div><div class="small-muted">${ev?.date||''} • ${ev?.venue||''}</div></div><div><button class="btn-ghost" onclick="viewTicket('${r.id}')">View Ticket</button></div>`;
+        myRegs.appendChild(el);
+      });
+    }
+
+    window.viewTicket = (regId) => {
+      const reg = getRegs().find(r=>r.id===regId);
+      if(!reg) return alert('Ticket not found');
+      openQR(reg);
+    };
+
+    // QR generation using qrious
+    const qrCanvas = $('#qr-canvas');
+    const qr = new QRious({ element: qrCanvas, size: 220, value: 'none' });
+
+    function openQR(reg){
+      const ev = getEvents().find(e=>e.id===reg.evId) || {};
+      const payload = JSON.stringify({regId: reg.id, evId: reg.evId, user: reg.userEmail, name: reg.userName, title: ev.title, date: ev.date, time: ev.time});
+      qr.set({value: payload});
+      $('#modal-title').textContent = `${ev.title || 'Ticket'} — ${reg.userName}`;
+      $('#qr-info').textContent = `${ev.date || ''} • ${ev.time || ''} — ${ev.venue || ''}`;
+      $('#modal').classList.add('show');
+      $('#modal').setAttribute('aria-hidden','false');
+      // download
+      $('#download-qr').onclick = () => {
+        const url = qr.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = url; a.download = `${(ev.title||'ticket').replace(/\s+/g,'_')}_${reg.userName.replace(/\s+/g,'_')}.png`;
+        document.body.appendChild(a); a.click(); a.remove();
+      };
+    }
+    $('#modal-close').onclick = ()=> { $('#modal').classList.remove('show'); $('#modal').setAttribute('aria-hidden','true'); }
+    $('#modal-ok').onclick = ()=> { $('#modal').classList.remove('show'); $('#modal').setAttribute('aria-hidden','true'); }
+
+    // announcements
+    function getAnns(){ return JSON.parse(localStorage.getItem(STORAGE.ann)||'[]'); }
+    function saveAnns(a){ localStorage.setItem(STORAGE.ann, JSON.stringify(a)); }
+    $('#btn-post-ann').onclick = () => {
+      if(!currentUser || currentUser.role!=='staff') return alert('Only staff can post announcements');
+      const t = $('#ann-title').value.trim(); const b = $('#ann-body').value.trim();
+      if(!t||!b) return alert('Complete title and body');
+      const anns = getAnns();
+      anns.unshift({id: uid(), title:t, body:b, created: Date.now(), author: currentUser.name});
+      saveAnns(anns);
+      $('#ann-title').value=''; $('#ann-body').value='';
+      renderAnns();
+    };
+    $('#btn-cancel-ann').onclick = ()=> { $('#ann-title').value=''; $('#ann-body').value=''; }
+
+    function renderAnns(){
+      const anns = getAnns();
+      annListEl.innerHTML = '';
+      anns.forEach(a=>{
+        const el = document.createElement('div'); el.className='ann';
+        el.innerHTML = `<div style="display:flex;justify-content:space-between"><div style="font-weight:700">${a.title}</div><div class="small-muted">${timeAgo(a.created)}</div></div><div class="small-muted" style="margin-top:6px">${a.body}</div>`;
+        annListEl.appendChild(el);
+      });
+    }
+
+    // Discussion board
+    function getDisc(){ return JSON.parse(localStorage.getItem(STORAGE.disc)||'[]'); }
+    function saveDisc(a){ localStorage.setItem(STORAGE.disc, JSON.stringify(a)); }
+    $('#btn-post-disc').onclick = () => {
+      if(!currentUser) return alert('Please login to comment');
+      const txt = $('#discussion-input').value.trim();
+      if(!txt) return;
+      const disc = getDisc();
+      disc.unshift({id:uid(), user: currentUser.name, role: currentUser.role, body:txt, created: Date.now()});
+      saveDisc(disc);
+      $('#discussion-input').value='';
+      renderDisc();
+    };
+    function renderDisc(){
+      const disc = getDisc();
+      discList.innerHTML = '';
+      if(disc.length===0){ discList.innerHTML = '<div class="small-muted">No comments yet. Start the conversation!</div>'; return;}
+      disc.forEach(d=>{
+        const el = document.createElement('div');
+        el.className='ann';
+        el.innerHTML = `<div style="display:flex;justify-content:space-between;gap:8px"><div><strong>${d.user}</strong> <span class="small-muted">• ${d.role}</span><div class="small-muted" style="font-size:12px">${timeAgo(d.created)}</div></div>${currentUser && currentUser.role==='staff' ? `<button class="btn-ghost" onclick="removeComment('${d.id}')">Delete</button>`: ''}</div><div style="margin-top:8px" class="small-muted">${d.body}</div>`;
+        discList.appendChild(el);
+      });
+    }
+    window.removeComment = (id) => {
+      if(!currentUser || currentUser.role!=='staff') return alert('Only staff can moderate');
+      const disc = getDisc().filter(d=> d.id!==id);
+      saveDisc(disc); renderDisc();
+    };
+
+    // utilities
+    function timeAgo(ts){
+      const s = Math.floor((Date.now()-ts)/1000);
+      if(s<60) return s + 's ago';
+      if(s<3600) return Math.floor(s/60) + 'm ago';
+      if(s<86400) return Math.floor(s/3600) + 'h ago';
+      return Math.floor(s/86400) + 'd ago';
+    }
+
+    function renderProfiles(){
+      // nothing for now — placeholder if needed later
+    }
+
+    function renderProfiles(){}
+
+    // initial render
+    renderEvents();
+    renderAnns();
+    renderRegs();
+    renderDisc();
+    renderNav();
+
+    // sort change
+    $('#sort-select').onchange = renderEvents;
+
+    // quick UI fun: animate role toggle based on selection
+    setRole('student');
+
+    // small accessibility: allow enter key on login fields
+    $('#login-pass').addEventListener('keypress', (e)=> { if(e.key==='Enter') $('#btn-login').click(); });
+
+    // If someone registers externally (rare), provide view ticket by id
+    window.openQRById = (regId) => {
+      const reg = getRegs().find(r=>r.id===regId);
+      if(reg) openQR(reg);
+    };
+
+    // expose for debugging in dev console
+    window.BUZZ = {getEvents, getAnns, getRegs, getDisc, seed, logout};
+  </script>
+</body>
+</html>
